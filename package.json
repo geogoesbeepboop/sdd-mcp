@@ -1,0 +1,40 @@
+{
+  "name": "sdd-mcp",
+  "version": "1.0.0",
+  "description": "MCP Server for Spec-Driven Development workflows with GitHub Copilot",
+  "main": "dist/index.js",
+  "bin": {
+    "sdd-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "clean": "rm -rf dist",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "spec-driven-development",
+    "github-copilot",
+    "development-workflow",
+    "model-context-protocol"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist/**/*",
+    "commands/**/*",
+    "README.md"
+  ]
+}

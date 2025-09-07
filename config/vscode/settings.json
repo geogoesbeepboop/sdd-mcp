@@ -1,0 +1,32 @@
+{
+  "github.copilot.advanced": {
+    "agents": {
+      "context-fetcher": {
+        "description": "Retrieve and extract relevant information from project documentation files",
+        "tools": ["read", "grep", "glob"],
+        "color": "blue",
+        "activation": "proactive"
+      },
+      "git-workflow": {
+        "description": "Handle git operations, branch management, commits, and PR creation",
+        "tools": ["bash", "read", "grep"],
+        "color": "orange",
+        "activation": "proactive"
+      },
+      "sdd-workflow": {
+        "description": "Spec-driven development workflow management using MCP tools",
+        "tools": ["sdd-mcp"],
+        "color": "green",
+        "activation": "proactive"
+      }
+    },
+    "mcp": {
+      "sdd-mcp": {
+        "type": "stdio",
+        "command": "node",
+        "args": ["/Users/geoandr/dev/sdd-mcp/dist/index.js"],
+        "description": "Spec-Driven Development MCP Server"
+      }
+    }
+  }
+}
