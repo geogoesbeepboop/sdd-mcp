@@ -21,14 +21,22 @@ Transform a specification into an ordered, implementable task list that serves a
 
 ### Step 1: Detect Context
 
-1. **Validate active spec:**
-   - Check `.github/context.md` for ACTIVE_SPEC
+**Follow the context-fetcher strategy from agents/context-fetcher.md:**
+
+1. **Validate project state and active spec:**
+   - Auto-fetch foundation documents: `.github/context.md`, `.github/product.md`, `.github/best-practices.md`
+   - From loaded context.md, check ACTIVE_SPEC
    - If ACTIVE_SPEC is "none" or missing, list available specs in `specs/` directory
    - If no specs exist, suggest: "No specs found. Run /create-spec to create your first specification."
 
-2. **Load spec information:**
-   - Load the active spec's `lite.md` for efficient processing
+2. **Load spec and contextual documentation:**
+   - Load the active spec's `lite.md` for efficient processing (spec-specific fetching)
    - If lite.md doesn't exist, fall back to `spec.md`
+   - **Contextually fetch** relevant technical docs based on spec content:
+     - If spec involves API work: Load `docs/api.md` for endpoint patterns
+     - If spec involves database: Load `docs/database.md` for schema patterns  
+     - If spec involves architecture changes: Load `docs/architecture.md` for component patterns
+     - If spec involves UI/design: Load `docs/design.md` for component patterns
    - Extract key information: feature name, technical scope, acceptance criteria
 
 3. **Check for existing tasks:**
@@ -58,13 +66,13 @@ Transform a specification into an ordered, implementable task list that serves a
 
 ### Step 3: Process and Validate
 
-1. **Analyze spec requirements and break into task categories:**
-   - **Setup tasks**: Database migrations, config files, environment setup, boilerplate code
-   - **Core feature tasks**: Main business logic, primary user flows, core functionality
-   - **Integration tasks**: API connections, service communication, data flow
-   - **Testing tasks**: Unit tests, integration tests, validation
-   - **Polish tasks**: Error handling, edge cases, performance optimization
-   - **Documentation tasks**: Code comments, API docs, user guides
+1. **Analyze spec requirements using loaded context and break into task categories:**
+   - **Setup tasks**: Database migrations (following patterns from loaded database.md), config files, environment setup, boilerplate code (following best-practices.md patterns)
+   - **Core feature tasks**: Main business logic (following architecture.md patterns), primary user flows, core functionality aligned with product.md mission
+   - **Integration tasks**: API connections (following api.md patterns), service communication (following architecture.md patterns), data flow
+   - **Testing tasks**: Unit tests, integration tests, validation (following testing patterns from best-practices.md)
+   - **Polish tasks**: Error handling (following patterns from best-practices.md), edge cases, performance optimization
+   - **Documentation tasks**: Code comments, API docs updates, user guides
 
 2. **Generate effort estimates:**
    - Use granularity preference to estimate task duration
@@ -78,11 +86,13 @@ Transform a specification into an ordered, implementable task list that serves a
    - **Value delivery**: Core user path before edge cases and polish
    - **Parallel opportunities**: Identify tasks that can be worked on simultaneously
 
-4. **Validate task breakdown:**
-   - Ensure every acceptance criteria from spec is covered
-   - Check that technical scope items are addressed
-   - Verify no task is too large (should be completable in estimated timeframe)
-   - Confirm dependencies are logical and necessary
+4. **Validate task breakdown using loaded context:**
+   - Ensure every acceptance criteria from spec is covered by specific tasks
+   - Check that technical scope items are addressed using patterns from loaded technical docs
+   - Verify implementation approach aligns with loaded architecture.md and best-practices.md
+   - Confirm no task is too large (should be completable in estimated timeframe)
+   - Validate dependencies are logical, necessary, and follow architectural patterns
+   - Check that error handling and testing tasks follow loaded best-practices.md patterns
 
 ### Step 4: Generate Output
 
@@ -92,20 +102,30 @@ Transform a specification into an ordered, implementable task list that serves a
    - Organize tasks by phases with clear dependencies
    - Provide implementation order guidelines
 
-2. **Validate task file:**
-   - Ensure all tasks have required fields (file, action, details, acceptance)
-   - Verify effort estimates add up reasonably
-   - Check that dependencies are clearly marked
-   - Confirm task numbering and formatting is consistent
+2. **Validate task quality:**
+   - **Specificity Check**: Ensure tasks contain specific file paths and actions, not generic placeholders
+   - **Context Alignment**: Validate tasks reference loaded technical patterns and architectural decisions
+   - **Completeness Check**: Confirm all acceptance criteria are covered by specific tasks
+   - **Feasibility Check**: Verify task breakdown is realistic with loaded tech stack and best practices
+   - **Quality Score**: Rate tasks on specificity, alignment, completeness, and feasibility (minimum 3/5 on each)
 
-3. **Update project tracking:**
+3. **Validate task file structure:**
+   - Ensure all tasks have required fields (file, action, details, acceptance)
+   - Verify effort estimates add up reasonably and match selected granularity
+   - Check that dependencies are clearly marked and follow logical sequence
+   - Confirm task numbering and formatting is consistent with project standards
+
+4. **Update project tracking:**
    - Note in `.github/context.md` that tasks have been created
    - Update LAST_UPDATED timestamp
+   - Record which foundation and technical docs were used for task generation
 
-4. **Report completion:**
-   - List total number of tasks created
-   - Show estimated total effort
-   - Highlight any high-risk or complex tasks
+5. **Report completion with quality assessment:**
+   - List total number of tasks created by category (setup/core/integration/testing/polish/docs)
+   - Show estimated total effort and breakdown by phase
+   - Report quality scores and highlight any areas needing improvement
+   - Highlight any high-risk or complex tasks with mitigation strategies
+   - Provide context guidance: "Foundation docs remain loaded. Technical docs will be referenced during implementation."
    - Suggest next step: "Tasks created successfully. Use /implement to start execution."
 
 ## File Templates
@@ -115,84 +135,110 @@ Transform a specification into an ordered, implementable task list that serves a
 # Implementation Tasks: [Feature Name]
 
 ## Overview
-Spec: SPEC-YYYYMMDD-slug
-Approach: [backend-first|frontend-first|parallel]
-Estimated effort: [X hours]
-Status: IN_PROGRESS
+- **Spec**: SPEC-YYYYMMDD-slug
+- **Approach**: [backend-first|frontend-first|parallel|risk-first]
+- **Estimated Total Effort**: [X hours]
+- **Status**: NOT_STARTED
+- **Context Used**: [List of loaded technical docs: api.md, database.md, architecture.md, etc.]
+- **Quality Score**: [Specificity/Alignment/Completeness/Feasibility scores]
+
+## Foundation Documents Referenced
+- **Product Context**: [Key aspects from product.md used for task alignment]
+- **Technical Standards**: [Key patterns from best-practices.md applied]
+- **Architecture**: [Key components from architecture.md referenced]
+- **Integration Patterns**: [Key patterns from technical docs used]
 
 ## Tasks
 
-### Phase 1: Foundation
-- [ ] **Task 1.1**: [Task name]
-  - **File**: `repos/[repo]/[file-path]`
-  - **Action**: [Create|Modify|Delete]
-  - **Estimate**: [duration in hours]
-  - **Details**: [Specific implementation details]
-  - **Acceptance**: [How to verify completion]
-  - **Dependencies**: [List of task IDs that must complete first]
-  - **Risks**: [Potential blockers or challenges]
-
-- [ ] **Task 1.2**: [Database setup]
-  - **File**: `repos/backend/migrations/[file]`
-  - **Action**: Create migration
-  - **Estimate**: [duration in hours]
-  - **Details**: Add table/fields as per database.md specification
-  - **Acceptance**: Migration runs successfully and creates expected schema
+### Phase 1: Foundation & Setup
+- [ ] **Task 1.1**: [Environment/Configuration Setup]
+  - **File**: `repos/[repo]/[config-path]`
+  - **Action**: [Create|Modify] 
+  - **Estimate**: [duration] hours
+  - **Details**: [Specific configuration following best-practices.md patterns]
+  - **Acceptance**: [How to verify completion with specific checks]
   - **Dependencies**: None
-  - **Risks**: Schema conflicts with existing tables
+  - **Risks**: [Specific risks and mitigation plans]
+  - **Best Practices**: [Reference specific patterns from loaded best-practices.md]
+
+- [ ] **Task 1.2**: [Database Schema Changes]
+  - **File**: `repos/[backend-repo]/migrations/[migration-file]`
+  - **Action**: Create migration
+  - **Estimate**: [duration] hours
+  - **Details**: Add [specific tables/fields] following patterns from loaded database.md
+  - **Acceptance**: Migration creates expected schema matching database.md patterns
+  - **Dependencies**: None
+  - **Risks**: Schema conflicts with existing tables, rollback strategy needed
+  - **Best Practices**: [Reference migration patterns from loaded database.md]
 
 ### Phase 2: Core Implementation
-- [ ] **Task 2.1**: [API endpoint implementation]
-  - **File**: `repos/backend/routes/[feature].js`
+- [ ] **Task 2.1**: [API Endpoint Implementation]
+  - **File**: `repos/[backend-repo]/[controller-path]`
   - **Action**: Create
-  - **Estimate**: [duration in hours]
-  - **Details**: Implement [POST /api/feature] with validation and error handling
-  - **Acceptance**: Endpoint responds correctly to test payload and handles edge cases
+  - **Estimate**: [duration] hours
+  - **Details**: Implement [specific endpoint] following api.md patterns and best-practices.md standards
+  - **Acceptance**: Endpoint responds correctly and handles all cases from spec acceptance criteria
   - **Dependencies**: Task 1.2 (database schema ready)
-  - **Risks**: Complex validation requirements or authentication integration
+  - **Risks**: [Specific integration challenges and error handling requirements]
+  - **Best Practices**: [Reference API patterns from loaded api.md and error handling from best-practices.md]
 
-- [ ] **Task 2.2**: [Business logic service]
-  - **File**: `repos/backend/services/[feature]Service.js`
+- [ ] **Task 2.2**: [Business Logic Service]
+  - **File**: `repos/[backend-repo]/services/[service-file]`
   - **Action**: Create
-  - **Estimate**: [duration in hours]
-  - **Details**: Implement core business logic for [requirement]
-  - **Acceptance**: Unit tests pass with >90% coverage
-  - **Dependencies**: Task 1.2 (database access needed)
-  - **Risks**: Complex business rules or external service dependencies
+  - **Estimate**: [duration] hours
+  - **Details**: Implement core business logic following architecture.md service patterns
+  - **Acceptance**: Service passes all unit tests and integrates with existing architecture
+  - **Dependencies**: Task 1.2 (data layer ready)
+  - **Risks**: [Business rule complexity and external dependency issues]
+  - **Best Practices**: [Reference service patterns from architecture.md and testing from best-practices.md]
 
-### Phase 3: Frontend
-- [ ] **Task 3.1**: [UI Component]
-  - File: `repos/frontend/components/[Feature].jsx`
-  - Action: Create
-  - Details: Build component with [specific requirements]
-  - Dependencies: Task 2.1 (API ready)
-  - Acceptance: Component renders and handles user input
+### Phase 3: Frontend Implementation
+- [ ] **Task 3.1**: [UI Component Creation]
+  - **File**: `repos/[frontend-repo]/components/[FeatureComponent]`
+  - **Action**: Create
+  - **Estimate**: [duration] hours
+  - **Details**: Build component following design.md patterns and best-practices.md standards
+  - **Acceptance**: Component renders correctly and handles all user interactions from spec
+  - **Dependencies**: Task 2.1 (API endpoint available)
+  - **Risks**: [Complex state management or external component library integration]
+  - **Best Practices**: [Reference component patterns from design.md and coding standards from best-practices.md]
 
-### Phase 4: Integration
-- [ ] **Task 4.1**: [Connect frontend to API]
-  - File: `repos/frontend/api/[feature]Api.js`
-  - Action: Create
-  - Details: API client functions
-  - Acceptance: Data flows correctly between frontend and backend
+- [ ] **Task 3.2**: [API Integration Layer]
+  - **File**: `repos/[frontend-repo]/api/[feature]Api.js`
+  - **Action**: Create
+  - **Estimate**: [duration] hours
+  - **Details**: API client functions following api.md response patterns
+  - **Acceptance**: Data flows correctly between frontend and backend with proper error handling
+  - **Dependencies**: Task 2.1 (API endpoints implemented)
+  - **Risks**: [Network error handling and data transformation challenges]
+  - **Best Practices**: [Reference API integration patterns from loaded technical docs]
 
-### Phase 5: Polish
-- [ ] **Task 5.1**: [Error handling]
-  - Files: Multiple (list main ones)
-  - Action: Enhance
-  - Details: Add proper error messages and recovery
-  - Acceptance: All error cases handled gracefully
+### Phase 4: Polish & Documentation
+- [ ] **Task 4.1**: [Enhanced Error Handling]
+  - **Files**: [List specific files that need error handling enhancement]
+  - **Action**: Enhance
+  - **Estimate**: [duration] hours
+  - **Details**: Implement comprehensive error handling following best-practices.md patterns
+  - **Acceptance**: All error scenarios handled gracefully with appropriate user feedback
+  - **Dependencies**: [Core implementation tasks completed]
+  - **Risks**: [Complex error scenarios and recovery mechanisms]
+  - **Best Practices**: [Reference error handling patterns from best-practices.md]
 
-- [ ] **Task 5.2**: [Update documentation]
-  - File: `docs/api.md`
-  - Action: Update
-  - Details: Document new endpoints
-  - Acceptance: Docs reflect new functionality
+- [ ] **Task 4.2**: [Documentation Updates]
+  - **File**: `docs/api.md` (and other relevant docs)
+  - **Action**: Update
+  - **Estimate**: [duration] hours
+  - **Details**: Document new functionality maintaining consistency with existing doc patterns
+  - **Acceptance**: Documentation is accurate, complete, and follows project documentation standards
+  - **Dependencies**: All implementation tasks completed
+  - **Risks**: [Documentation accuracy and completeness]
+  - **Best Practices**: [Reference documentation patterns from foundation docs]
 
 ## Implementation Order
-1. Start with: Task 1.1, 1.2 (can be parallel)
+1. Start with: Task 1.1, 1.2 (sequential)
 2. Then: Tasks 2.1, 2.2 (sequential)
-3. Then: Tasks 3.1, 4.1 (sequential)
-4. Finally: Tasks 5.1, 5.2 (can be parallel)
+3. Then: Tasks 3.1, 3,2 (sequential)
+4. Finally: Tasks 4.1, 4.2 (sequential)
 
 ## Notes
 - [Any special considerations]
@@ -205,52 +251,3 @@ Status: IN_PROGRESS
 - Completed: 0/[total] tasks
 - Total Estimated Effort: [X hours]
 - Remaining Effort: [X hours]
-
-## Risk Assessment
-- **High Risk Tasks**: [List task IDs with significant uncertainty]
-- **External Dependencies**: [List tasks requiring outside resources]
-- **Critical Path**: [List task IDs that could block overall progress]
-
-## Error Handling and Edge Cases
-
-### Common Issues and Solutions
-
-1. **No Active Spec Found**
-   - Context shows ACTIVE_SPEC as "none"
-   - Solution: List available specs, ask user to choose or create new spec
-
-2. **Spec File Missing or Corrupted**
-   - lite.md or spec.md cannot be loaded
-   - Solution: Try alternative file, ask user to verify spec integrity
-
-3. **Overly Complex Spec**
-   - Spec contains too many requirements for manageable task breakdown
-   - Solution: Suggest breaking into multiple specs or phases
-
-4. **Unclear Technical Scope**
-   - Spec doesn't provide enough technical detail for task creation
-   - Solution: Ask clarifying questions, suggest updating spec
-
-5. **Conflicting Dependencies**
-   - Task dependencies create circular references or logical conflicts
-   - Solution: Identify conflicts, ask user to clarify priorities
-
-### Validation Failures
-
-- **Task too large**: Individual task exceeds chosen granularity maximum
-- **Missing files**: Cannot identify where implementation should go
-- **Duplicate work**: Tasks overlap significantly with each other
-- **Unrealistic estimates**: Total effort seems disproportionate to spec scope
-
-### File Creation Issues
-
-- **Permission errors**: Cannot write to spec folder
-- **Existing tasks file**: Handle overwrites and merges carefully
-- **Invalid file paths**: Repository paths referenced in spec don't exist
-
-### Recovery Actions
-
-- If task creation fails: preserve partial work, allow user to resume
-- For dependency conflicts: provide visualization of task relationships
-- For unclear requirements: generate tasks with placeholders and flag for review
-- Always validate generated tasks before finalizing

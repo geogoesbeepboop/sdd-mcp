@@ -9,10 +9,68 @@ export interface ProjectContext {
 
 export type ProjectStateType = 'NEW' | 'EXISTING' | 'PARTIAL' | 'CONFIGURED';
 
+export type DocumentType = 'foundation' | 'technical' | 'spec' | 'legacy';
+export type FetchingRule = 'always' | 'on-demand' | 'never-refetch' | 'spec-specific';
+
+export interface DocumentMetadata {
+  path: string;
+  type: DocumentType;
+  rule: FetchingRule;
+  description: string;
+}
+
 export class ContextHelper {
   private contextPath: string;
+  private workingDirectory: string;
+  
+  // Smart fetching rules mapping
+  private static readonly DOCUMENT_RULES: { [key: string]: DocumentMetadata } = {
+    'product.md': {
+      path: '.github/product.md',
+      type: 'foundation',
+      rule: 'always',
+      description: 'Core product context needed for all development'
+    },
+    'best-practices.md': {
+      path: '.github/best-practices.md', 
+      type: 'foundation',
+      rule: 'always',
+      description: 'Essential coding standards for implementation'
+    },
+    'context.md': {
+      path: '.github/context.md',
+      type: 'foundation',
+      rule: 'always',
+      description: 'Current project state and active spec tracking'
+    },
+    'architecture.md': {
+      path: 'docs/architecture.md',
+      type: 'technical',
+      rule: 'on-demand',
+      description: 'Only when making architectural decisions or major changes'
+    },
+    'api.md': {
+      path: 'docs/api.md',
+      type: 'technical', 
+      rule: 'on-demand',
+      description: 'Only when working on API-related features'
+    },
+    'database.md': {
+      path: 'docs/database.md',
+      type: 'technical',
+      rule: 'on-demand', 
+      description: 'Only when working on data/schema-related features'
+    },
+    'design.md': {
+      path: 'docs/design.md',
+      type: 'technical',
+      rule: 'on-demand',
+      description: 'Only when working on UI/UX or design system features'
+    }
+  };
 
   constructor(workingDirectory: string = process.cwd()) {
+    this.workingDirectory = workingDirectory;
     this.contextPath = path.join(workingDirectory, '.github', 'context.md');
   }
 
@@ -160,5 +218,98 @@ export class ContextHelper {
       default:
         return 'Unknown project state';
     }
+  }
+
+  /**
+   * Get documents that should always be fetched (foundation documents)
+   */
+  getFoundationDocuments(): DocumentMetadata[] {
+    return Object.values(ContextHelper.DOCUMENT_RULES)
+      .filter(doc => doc.rule === 'always');
+  }
+
+  /**
+   * Get documents that should only be fetched on-demand
+   */
+  getOnDemandDocuments(): DocumentMetadata[] {
+    return Object.values(ContextHelper.DOCUMENT_RULES)
+      .filter(doc => doc.rule === 'on-demand');
+  }
+
+  /**
+   * Check if a document should be auto-fetched on new conversation
+   */
+  shouldAutoFetch(documentName: string): boolean {
+    const docInfo = ContextHelper.DOCUMENT_RULES[documentName];
+    return docInfo?.rule === 'always' || false;
+  }
+
+  /**
+   * Check if a document exists and get its metadata
+   */
+  getDocumentInfo(documentName: string): DocumentMetadata | null {
+    return ContextHelper.DOCUMENT_RULES[documentName] || null;
+  }
+
+  /**
+   * Get all available document paths and their fetch rules
+   */
+  getAllDocumentRules(): { [key: string]: DocumentMetadata } {
+    return ContextHelper.DOCUMENT_RULES;
+  }
+
+  /**
+   * Check if a document file actually exists on disk
+   */
+  documentExists(documentName: string): boolean {
+    const docInfo = ContextHelper.DOCUMENT_RULES[documentName];
+    if (!docInfo) return false;
+    
+    const fullPath = path.join(this.workingDirectory, docInfo.path);
+    return fs.existsSync(fullPath);
+  }
+
+  /**
+   * Get the full path for a document
+   */
+  getDocumentPath(documentName: string): string | null {
+    const docInfo = ContextHelper.DOCUMENT_RULES[documentName];
+    if (!docInfo) return null;
+    
+    return path.join(this.workingDirectory, docInfo.path);
+  }
+
+  /**
+   * Determine which documents should be contextually fetched based on user intent
+   */
+  getContextuallyRelevantDocs(userIntent: string): DocumentMetadata[] {
+    const intent = userIntent.toLowerCase();
+    const relevant: DocumentMetadata[] = [];
+
+    // API-related work
+    if (intent.includes('api') || intent.includes('endpoint') || intent.includes('auth') || intent.includes('route')) {
+      const apiDoc = ContextHelper.DOCUMENT_RULES['api.md'];
+      if (apiDoc) relevant.push(apiDoc);
+    }
+
+    // Database-related work
+    if (intent.includes('database') || intent.includes('schema') || intent.includes('model') || intent.includes('data')) {
+      const dbDoc = ContextHelper.DOCUMENT_RULES['database.md'];
+      if (dbDoc) relevant.push(dbDoc);
+    }
+
+    // Architecture-related work
+    if (intent.includes('architecture') || intent.includes('system') || intent.includes('component') || intent.includes('design decision')) {
+      const archDoc = ContextHelper.DOCUMENT_RULES['architecture.md'];
+      if (archDoc) relevant.push(archDoc);
+    }
+
+    // UI/Design-related work
+    if (intent.includes('ui') || intent.includes('design') || intent.includes('component') || intent.includes('styling')) {
+      const designDoc = ContextHelper.DOCUMENT_RULES['design.md'];
+      if (designDoc) relevant.push(designDoc);
+    }
+
+    return relevant;
   }
 }

@@ -24,21 +24,29 @@ Update project-level documentation in docs/ to reflect newly implemented feature
 
 ### Step 1: Detect Context
 
-1. **Determine documentation scope:**
-   - Check `.github/context.md` for ACTIVE_SPEC
+**Follow the context-fetcher strategy from agents/context-fetcher.md:**
+
+1. **Determine documentation scope and load foundation context:**
+   - Auto-fetch foundation documents: `.github/context.md`, `.github/product.md`, `.github/best-practices.md`
+   - From loaded context.md, check ACTIVE_SPEC
    - If ACTIVE_SPEC specified, focus on current spec
    - If user requested "all-completed", scan all specs with completed tasks
    - If no specs have completed tasks, suggest running /implement first
 
-2. **Analyze implementation status:**
-   - For each target spec, load `tasks.md`
-   - Identify tasks marked as completed (checked boxes)
+2. **Analyze implementation status using spec-specific fetching:**
+   - For each target spec, load `specs/[SPEC-ID]/tasks.md`
+   - Load `specs/[SPEC-ID]/lite.md` for quick reference to what was planned
+   - Identify tasks marked as completed (checked boxes) with quality scores
    - Extract what was actually built vs. what was planned
-   - Note any deviations or additional work mentioned in task notes
+   - Note any deviations, quality scores, or additional work mentioned in task notes
 
-3. **Load existing documentation:**
-   - Read current `docs/api.md`, `docs/database.md`, `docs/architecture.md`, `docs/design.md`
-   - Identify existing content structure and patterns
+3. **Load existing documentation using on-demand fetching:**
+   - **Contextually fetch** technical docs that need updating based on completed tasks:
+     - If API tasks completed: Load `docs/api.md` for current API structure
+     - If database tasks completed: Load `docs/database.md` for current schema
+     - If architecture tasks completed: Load `docs/architecture.md` for current components
+     - If design tasks completed: Load `docs/design.md` for current UI patterns
+   - Identify existing content structure and patterns from enhanced plan.md templates
    - Note last update timestamps and what specs contributed to each doc
 
 ### Step 2: Gather Information
@@ -97,11 +105,12 @@ Update project-level documentation in docs/ to reflect newly implemented feature
      - Design system updates
      - User flow changes
 
-2. **Validate content quality:**
-   - Ensure all information comes from completed tasks only
-   - Cross-reference with actual implementation files when possible
-   - Check for consistency with existing documentation style
-   - Verify technical accuracy of extracted information
+2. **Validate content quality using loaded context:**
+   - Ensure all information comes from completed tasks with quality scores ≥3/5
+   - Cross-reference with actual implementation files and loaded best-practices.md patterns
+   - Check for consistency with existing documentation style and loaded plan.md templates
+   - Verify technical accuracy against loaded foundation docs (product.md, best-practices.md)
+   - Ensure updates align with loaded architecture.md and technical documentation patterns
 
 3. **Resolve conflicts and duplications:**
    - Identify overlapping content with existing docs
@@ -133,87 +142,31 @@ Update project-level documentation in docs/ to reflect newly implemented feature
    - Note any assumptions or limitations
    - Reference related tasks or implementations
 
-3. **Validate updated documentation:**
-   - Check that all targeted changes are included
-   - Verify formatting and structure consistency
-   - Ensure no broken references or links
-   - Confirm readability and logical flow
-
-4. **Update project tracking:**
+3. **Update project tracking:**
    - Note documentation updates in `.github/context.md`
    - Update LAST_UPDATED timestamp
-   - Track which specs have been documented
+   - Track which specs have been documented and their quality scores
+   - Record which foundation and technical docs were used for updates
 
-5. **Report completion:**
+4. **Report completion with quality assessment:**
    ```
    📚 Documentation Sync Complete
    ============================
-   Updated from: [list of specs]
+   Updated from: [list of specs with quality scores]
+   Context Used: [foundation docs and technical docs referenced]
    
    Files Updated:
-   ✓ docs/api.md - Added [X] endpoints, updated [Y] sections
-   ✓ docs/database.md - Added [X] tables, [Y] modifications
-   ✓ docs/architecture.md - Added [X] components
+   ✓ docs/api.md - Added [X] endpoints, updated [Y] sections (Quality: [scores])
+   ✓ docs/database.md - Added [X] tables, [Y] modifications (Quality: [scores])
+   ✓ docs/architecture.md - Added [X] components (Quality: [scores])
    
    Files Unchanged:
    - docs/design.md - No UI changes in processed specs
    
    Next Steps:
    - Review updated documentation for accuracy
-   - Consider running /plan to update roadmap
+   - Consider running /plan to update roadmap if needed
    - Ready to create next spec with /create-spec
-
-## Error Handling and Edge Cases
-
-### Common Issues and Solutions
-
-1. **No Completed Implementations**
-   - No specs have tasks marked as completed
-   - Solution: "No completed implementations found. Run /implement to complete some tasks first."
-
-2. **Missing Documentation Files**
-   - Target doc files don't exist in docs/ directory
-   - Solution: Create missing files with appropriate templates from /plan
-
-3. **Inconsistent Task Completion**
-   - Tasks marked complete but implementation details are unclear
-   - Solution: Ask for clarification, suggest reviewing task completion
-
-4. **Conflicting Documentation**
-   - Multiple specs make conflicting changes to same documentation
-   - Solution: Present conflicts, ask user to prioritize or resolve
-
-5. **Large Documentation Updates**
-   - Too many changes to process efficiently
-   - Solution: Suggest updating in phases, prioritize critical changes
-
-### Content Extraction Issues
-
-- **Incomplete task information**: Tasks lack sufficient detail to generate docs
-- **Technical inconsistencies**: Implementation doesn't match spec description
-- **Missing context**: Cannot understand relationship between changes
-- **Outdated information**: Existing docs contain obsolete information
-
-### File Management Issues
-
-- **Permission errors**: Cannot write to docs/ directory
-- **Concurrent edits**: Documentation files modified during sync
-- **Backup failures**: Cannot preserve existing content before updates
-- **Large file sizes**: Documentation files too large to process efficiently
-
-### Quality and Validation Issues
-
-- **Inaccurate content**: Generated documentation doesn't reflect actual implementation
-- **Formatting problems**: Updated docs have inconsistent structure
-- **Broken references**: Links or cross-references become invalid
-- **Style inconsistencies**: New content doesn't match existing documentation style
-
-### Recovery Actions
-
-- **Partial sync failures**: Complete what's possible, report what failed
-- **Content conflicts**: Preserve both versions, mark for manual resolution
-- **Validation failures**: Generate docs with warnings, suggest manual review
-- **Permission issues**: Suggest alternative output locations or fix permissions
 
 ### Sync Strategy Recommendations
 

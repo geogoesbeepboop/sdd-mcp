@@ -6,7 +6,7 @@ Initialize or configure a project for spec-driven development by analyzing the c
 ## Detection Logic
 The agent must systematically detect project state in this order:
 1. Check if `.github/product.md` exists → Existing spec-driven project (CONFIGURED)
-2. Check if `repos/` directory exists and contains code → Existing project, new to spec-driven (EXISTING)  
+2. Check if any codebase repos exist and contains code → Existing project, new to spec-driven (EXISTING)  
 3. Check if workspace is empty or only contains basic files → New project (NEW)
 4. Check if `.github/` exists but `product.md` is missing → Partially configured (PARTIAL)
 
@@ -62,20 +62,34 @@ Report detected state to user: "I detected this is a [STATE] project."
 **For NEW projects**, ask in this order:
 1. "What's the name of your product?"
 2. "What's the mission? (What problem does it solve in 1-3 sentences)"
-3. "What's the roadmap or vision for the development of this project?"
-4. "What's your tech stack? (e.g., React, Node.js, PostgreSQL)"
-5. "How will your repositories be structured? (single repo, frontend/backend split, microservices, etc.)"
+3. "What's your vision? (Where is this product heading? What does success look like?)"
+4. "What are the key features this product will provide? (3-5 main features)"
+5. "What's your tech stack? Include specific versions and justification for major choices."
+6. "How will your repositories be structured? (monorepo, multi-repo, microservices, etc. and why?)"
+7. "What are your key architectural constraints or requirements? (performance, scale, security, compliance, etc.)"
+8. "What's your roadmap? (Ordered phases with specific deliverables and rough timeline)"
+9. "Do you have any specific API design preferences? (REST, GraphQL, response patterns, error handling approach)"
+10. "Are there any specific business rules or domain logic I should be aware of?"
 
 **For EXISTING projects**:
-1. First, analyze repos/ automatically:
-   - Identify programming languages and frameworks
-   - Find package files to determine dependencies
-   - Scan for API route files, database schemas, config files
-   - Identify repository purposes and boundaries
-2. Present findings: "I found [X repos] with these technologies: [list]. The structure appears to be: [description]. Is this accurate?"
-3. Ask for clarification: "Please correct any misunderstandings and add missing context."
-4. Ask: "Any important architectural decisions or constraints I should document?"
-5. Ask: "What's your current roadmap or vision for this project's development?"
+1. First, analyze all codebase repos automatically:
+   - Identify programming languages, frameworks, and versions
+   - Find package files to determine dependencies and tech stack
+   - Scan for API route files, controllers, and endpoint patterns
+   - Analyze database schemas, models, and migration files
+   - Identify testing frameworks and patterns
+   - Look for configuration files and deployment patterns
+   - Analyze code structure and architectural patterns
+   - Identify repository purposes and service boundaries
+2. Present detailed findings: "I found [X repos] with these technologies: [detailed list]. Architecture patterns discovered: [patterns]. API structure: [endpoints/patterns]. Database: [schema overview]. Is this analysis accurate?"
+3. Ask for clarification: "Please add any missing context about the analysis."
+4. Ask: "What's the product mission and vision? (What problem does it solve and where is it heading?)"
+5. Ask: "What are the key business features this system provides?"
+6. Ask: "What architectural decisions or constraints should I document? (performance requirements, scaling needs, security considerations, etc.)"
+7. Ask: "Are there specific coding patterns or conventions I should capture from the codebase?"
+8. Ask: "What's your current development workflow? (testing approach, deployment process, code review practices)"
+9. Ask: "What's your roadmap for this project? (upcoming features, technical debt, refactoring plans)"
+10. Ask: "Are there any domain-specific business rules or logic I should understand?"
 
 **For PARTIAL projects**:
 1. Load existing `.github/` files and analyze what's already configured
@@ -96,10 +110,26 @@ Report detected state to user: "I detected this is a [STATE] project."
    - Check repository structure makes sense for the project type
 
 2. **For EXISTING projects, perform deep analysis:**
-   - Scan repos/ for: `package.json`, `pom.xml`, `requirements.txt`, `Cargo.toml`, etc.
-   - Find API route files: `routes/`, `controllers/`, `api/`, `endpoints/`
-   - Identify database files: `migrations/`, `schema/`, `models/`
-   - Look for config files: `.env.example`, `config/`, `docker-compose.yml`
+   - **Technology Detection**: Scan for `package.json`, `pom.xml`, `requirements.txt`, `Cargo.toml`, `go.mod`, `composer.json`, etc.
+   - **Framework Analysis**: Identify specific frameworks (Spring Boot, Express, Django, Rails, Laravel, etc.) and versions
+   - **API Pattern Analysis**: 
+     - Find route/controller files: `routes/`, `controllers/`, `api/`, `endpoints/`, `handlers/`
+     - Extract endpoint patterns and HTTP methods
+     - Identify request/response structures and DTOs
+     - Detect authentication/authorization patterns
+   - **Database Analysis**: 
+     - Find schema files: `migrations/`, `schema/`, `models/`, `entities/`
+     - Identify database type and ORM patterns
+     - Extract table relationships and key fields
+   - **Configuration Analysis**: 
+     - Find config files: `.env.example`, `config/`, `docker-compose.yml`, `application.properties`, `settings.py`
+     - Identify deployment and environment patterns
+   - **Code Pattern Analysis**:
+     - Extract naming conventions (camelCase, snake_case, etc.)
+     - Identify architectural patterns (layered, MVC, DDD, etc.)
+     - Find error handling approaches
+     - Detect testing patterns and frameworks
+     - Analyze logging and monitoring setup
 
 3. **Generate architecture insights:**
    - Map service boundaries and responsibilities
@@ -133,9 +163,17 @@ Report detected state to user: "I detected this is a [STATE] project."
    - Verify file paths are correct
    - Check that generated content matches provided information
 
-4. **Report completion:**
-   - List all files created
+4. **Validate documentation quality:**
+   - Check that all required sections are present in each file
+   - Ensure templates are filled with specific, project-relevant content (not generic placeholders)
+   - Validate that tech stack analysis matches discovered patterns
+   - Confirm architectural insights align with codebase analysis
+   - Check that best practices reflect actual patterns found in code
+
+5. **Report completion:**
+   - List all files created with brief description of content quality
    - Confirm the project is ready for spec-driven development
+   - Provide context fetching guidance: "Foundation docs (product.md, best-practices.md) will auto-load in new conversations. Technical docs (api.md, database.md, architecture.md) load on-demand when needed."
    - Suggest next step: "Your project is now configured. Use /create-spec to begin feature development."
 
 ## File Templates
@@ -145,57 +183,93 @@ Report detected state to user: "I detected this is a [STATE] project."
 # [Product Name]
 
 ## Mission
-[1-2 sentence mission statement]
+[1-3 sentence mission statement describing the core problem being solved]
 
-## Roadmap
-[Upcoming features, timeline, how the product will develop in phases]
+## Vision
+[Where the product is heading, what success looks like, the long-term impact]
 
-## Tech Stack
-- **Frontend**: [Technologies]
-- **Backend**: [Technologies]
-- **Database**: [Technologies]
-- **Infrastructure**: [Technologies]
+## Key Features
+- [Feature 1]: [Brief description of value provided]
+- [Feature 2]: [Brief description of value provided]
+- [Feature 3]: [Brief description of value provided]
+
+## Tech Stack (see /docs/architecture.md for details)
+- **Frontend**: [Technologies with justification for choice]
+- **Backend**: [Technologies with justification for choice] 
+- **Database**: [Technologies with justification for choice]
+- **Infrastructure**: [Technologies with justification for choice]
 
 ## Repository Structure
-- `repos/[repo-name]`: [Purpose and responsibility]
-- `repos/[repo-name-2]`: [Purpose and responsibility]
+[Describe monorepo vs multi-repo strategy and reasoning]
+- `repos/[repo-name]`: [Purpose, responsibilities, and technology focus]
+- `repos/[repo-name-2]`: [Purpose, responsibilities, and technology focus]
 
-## Key Design Decisions
-- [Decision 1]: [Rationale]
-- [Decision 2]: [Rationale]
+## Roadmap
+[Ordered by priority/timeline - be specific about what each phase delivers]
+1. [Phase 1 Name]: [Core deliverables and timeline]
+2. [Phase 2 Name]: [Core deliverables and timeline]
+3. [Phase 3 Name]: [Core deliverables and timeline]
+
+---
+For deep dives, see:
+- Architecture: `/docs/architecture.md`
+- API: `/docs/api.md`  
+- Database: `/docs/database.md`
 
 ### best-practices.md
 ```markdown
-# Development Best Practices
+# Coding Best Practices for [Product Name]
 
-## Code Style
+## General
+- Use comments alongside your code implementations for maintainability
+- Follow established patterns discovered in the codebase analysis
 
-### [Language] Standards
-[Auto-generated based on detected languages - include specific rules like:]
-- Indentation: [spaces/tabs]
-- Naming conventions: [camelCase/snake_case/PascalCase]
-- File organization patterns
-- Import/export conventions
+## [Primary Language] ([Framework if applicable])
+[Auto-generated based on detected languages and frameworks - include specific rules like:]
 
-## Git Workflow
+### Code Style
+- Indentation: [spaces/tabs detected from codebase]
+- Naming conventions: [camelCase/snake_case/PascalCase based on existing patterns]
+- File organization: [Based on discovered structure]
+- Import/export conventions: [Based on existing patterns]
+
+### Architecture Patterns
+- Use layered architecture: [Specific layers found in codebase, e.g., @Controller, @Service, @Repository, @Entity]
+- [Database]: [Specific ORM/database patterns found]
+- Configuration management: [Based on discovered config patterns]
+
+### API Design
+- All [controller/route] methods should return `[ResponseType]` for consistent API responses
+- When implementing new endpoints, always:
+  - [Specific pattern 1 from examples]
+  - [Specific pattern 2 from examples]
+  - Use DTOs for all request and response payloads
+  - Example usage: [Concrete example from codebase or framework]
+
+### Error Handling
+- [Specific error handling patterns discovered in codebase]
+- Handle exceptions with [specific approach found]
+- Log errors using [logging framework/pattern found]
+
+### Testing Conventions
+- [Testing framework and patterns discovered]
+- Coverage expectations: [Based on existing tests]
+- Test file organization: [Based on discovered structure]
+
+## Git Workflow  
 - Branch naming: `feature/[feature-name]` (extracted from SPEC-YYYYMMDD-slug)
 - Commit format: `type(scope): message`
 - PR naming: Clear, descriptive titles
-- Merge strategy: [squash/merge/rebase]
-
-## Implementation Patterns
-[Document patterns discovered in codebase:]
-- Error handling approaches
-- Configuration management
-- Testing conventions
-- API design patterns
-- Database access patterns
+- Merge strategy: [Based on project preference or discovered from history]
 
 ## Quality Standards
-- Code review requirements
-- Testing coverage expectations
-- Performance considerations
-- Security guidelines
+- Code review requirements: [Based on team size and complexity]
+- Performance considerations: [Specific to tech stack]
+- Security guidelines: [Framework-specific security patterns]
+
+## Collaboration
+- Document architectural, API and design decisions in /docs
+- [Additional patterns discovered from team workflows]
 ```
 
 ### context.md
@@ -213,116 +287,168 @@ Ready to create first specification with /create-spec.
 
 ### docs/architecture.md
 ```markdown
-# System Architecture
+# [Product Name] Architecture
+This document provides a deep dive into the technical architecture of [Product Name].
 
 ## Overview
-[High-level description of the system]
+[High-level description of system architecture approach - monolith, microservices, etc.]
+- [Brief summary of architectural approach and reasoning]
 
 ## Components
-[Based on repository analysis:]
+[Auto-generated based on repository analysis and discovered patterns]
 
-### [Component Name]
+### [Primary Component Name] 
+- **Framework**: [Detected framework and version]
 - **Location**: `repos/[repo-name]/`
-- **Purpose**: [Description]
-- **Technology**: [Tech stack]
-- **Responsibilities**: 
-  - [Responsibility 1]
-  - [Responsibility 2]
+- **Purpose**: [Core business logic description]
+- **Technology**: [Specific tech stack for this component]
+- **Key Responsibilities**:
+  - [Responsibility 1 based on code analysis]
+  - [Responsibility 2 based on code analysis]
+  - [Responsibility 3 based on code analysis]
+- **API Endpoints**: [If applicable - basic count/types]
+- **Database Tables**: [If applicable - basic count/types]
+
+### [Secondary Component Name]
+[Repeat pattern above for each discovered component]
 
 ## Data Flow
-[Describe how data moves through the system]
+[Describe how data moves through the system with specific examples]
+1. [Step 1]: [Specific process description]
+2. [Step 2]: [How data transforms/moves]  
+3. [Step 3]: [Final output/storage]
 
 ## Communication Patterns
-- [Pattern 1]: [Description and usage]
-- [Pattern 2]: [Description and usage]
+[Based on discovered patterns in codebase]
+- **[Pattern Type]**: [Description, when used, and discovered examples]
+- **[Pattern Type]**: [Description, when used, and discovered examples]
+- **[Pattern Type]**: [Description, when used, and discovered examples]
 
-## Deployment Architecture
-[Describe how components are deployed and scaled]
+## Deployment Strategy
+[Based on discovered deployment patterns and configuration files]
+- [Deployment approach]: [Description and reasoning]
+- [Build process]: [Based on discovered scripts/configs]
+- [Environment management]: [Based on discovered config patterns]
 
 ## Key Design Decisions
-- **[Decision Topic]**: [Decision and rationale]
-- **[Decision Topic]**: [Decision and rationale]
+- **[Technology Choice]**: [Decision and rationale based on analysis]
+- **[Architecture Pattern]**: [Decision and rationale based on analysis]
+- **[Integration Approach]**: [Decision and rationale based on analysis]
+
+## Performance Considerations
+[Based on tech stack and discovered patterns]
+- [Performance aspect 1]: [Approach and reasoning]
+- [Performance aspect 2]: [Approach and reasoning]
+
+## Security Architecture
+[Based on discovered security patterns]
+- [Security aspect 1]: [Implementation approach]
+- [Security aspect 2]: [Implementation approach]
+
+_See `/.github/product.md` for product vision, mission, and roadmap._
 ```
 
 ### docs/api.md
 ```markdown
-# API Documentation
+# [Product Name] API Overview
 
 ## Overview
-[Brief description of API design approach]
+[API design approach based on discovered patterns - REST/GraphQL/etc.]
+- [Brief description of API philosophy and design decisions]
+
+## Core Endpoints
+[Auto-generated from route/controller analysis where possible]
+- `[HTTP_METHOD] [/endpoint-pattern]` - [Brief description] (returns `[ResponseType]`)
+- `[HTTP_METHOD] [/endpoint-pattern]` - [Brief description] (returns `[ResponseType]`)
+- `[HTTP_METHOD] [/endpoint-pattern]` - [Brief description] (returns `[ResponseType]`)
 
 ## Authentication
-[Authentication mechanism if applicable]
+[Based on discovered auth patterns in codebase]
+- [Authentication mechanism found or recommended]
+- [Token handling approach]
+- [Authorization levels if discovered]
 
-## Base URL
-[API base URL and versioning strategy]
-
-## Endpoints
-[Auto-generated from route analysis - will be populated by /sync-docs]
+## Request/Response Format
+[Based on discovered patterns and best practices from codebase]
+- All API responses use `[ResponseWrapper]` for consistency
+- Request format: [Based on discovered DTO patterns]
+- Response format: [Based on discovered response patterns]
+- Example request/response: [Concrete example from framework/codebase]
 
 ## Error Handling
-[Standard error response format]
+[Based on discovered error handling patterns]
+- Error response format: [Specific structure found or recommended]
+- HTTP status codes: [Standards used in project]
+- Error categorization: [Based on discovered patterns]
 
-## Rate Limiting
-[Rate limiting policies if applicable]
+## Validation
+[Based on discovered validation patterns]
+- Input validation: [Framework/approach discovered]
+- Data sanitization: [Approach found in codebase]
+
+## DTOs
+- All request/response objects are defined as DTOs in the `[dto-location]` folder
+- [Additional DTO patterns discovered]
+
+## Documentation
+[Based on discovered documentation approach]
+- [API documentation tool/approach found]
+- [Interactive documentation availability]
 ```
 
 ### docs/database.md
 ```markdown
-# Database Documentation
+# [Product Name] Database Overview
 
 ## Overview
-[Database technology and approach]
+[Database technology and approach based on discovered patterns]
+- [Database type and version discovered]
+- [ORM/database access pattern discovered]
+- [Connection management approach]
 
-## Schema Design
-[High-level schema design principles]
+## Data Model
+[High-level data entities and their purposes based on discovered models/entities]
+- [Entity 1]: [Purpose and key attributes]
+- [Entity 2]: [Purpose and key attributes]  
+- [Entity 3]: [Purpose and key attributes]
+- [Entity 4]: [Purpose and key attributes]
+
+## Schema Design Principles
+[Based on discovered patterns and database best practices]
+- [Design principle 1 based on analysis]
+- [Design principle 2 based on analysis]
+- [Design principle 3 based on analysis]
 
 ## Tables
-[Auto-generated from schema analysis - will be populated by /sync-docs]
+[Auto-generated from schema analysis when /sync-docs runs - this section populated automatically]
 
-## Relationships
-[Key relationships between entities]
+## Key Relationships
+[Based on discovered foreign keys, joins, and entity relationships]
+- [Entity A] → [Entity B]: [Relationship type and purpose]
+- [Entity B] → [Entity C]: [Relationship type and purpose]
+- [Entity C] → [Entity D]: [Relationship type and purpose]
 
-## Indexes and Performance
-[Performance considerations and index strategy]
+## Storage Strategy
+[Based on discovered database configuration and requirements]
+- [Storage approach]: [Implementation and reasoning]
+- [Backup strategy]: [Based on discovered or recommended patterns]
+- [Data retention]: [Based on business requirements if discovered]
 
-## Migration Strategy
-[How database changes are managed]
+## Performance & Indexing
+[Based on discovered indexes and performance patterns]
+- [Performance consideration 1]: [Approach and reasoning]
+- [Performance consideration 2]: [Approach and reasoning]
+- [Index strategy]: [Based on discovered or recommended patterns]
+
+## Migration Management
+[Based on discovered migration patterns]
+- [Migration tool/approach discovered]: [Description]
+- [Migration process]: [Based on discovered workflow]
+- [Version control]: [How schema changes are tracked]
+
+## Security
+[Based on discovered security patterns]
+- [Data encryption]: [Approach if discovered]
+- [Access control]: [Database-level security patterns]
+- [Sensitive data handling]: [Patterns for PII, etc.]
 ```
-
-## Error Handling and Edge Cases
-
-### Common Issues and Solutions
-
-1. **Permission Issues**
-   - If unable to create `.github/` or `docs/` directories
-   - Solution: Check write permissions, suggest alternative locations
-
-2. **Conflicting Information**
-   - Repository analysis contradicts user input
-   - Solution: Present both findings, ask user to clarify
-
-3. **Missing Repository Structure**
-   - `repos/` exists but is empty or has unrecognized structure
-   - Solution: Treat as NEW project, ask for clarification
-
-4. **Incomplete Technology Detection**
-   - Cannot determine tech stack from files
-   - Solution: Ask user to specify, provide common options
-
-5. **Large Repository Analysis**
-   - Too many files to analyze efficiently
-   - Solution: Focus on root files and common patterns, ask for confirmation
-
-### Validation Failures
-
-- **Invalid product name**: Must not contain special characters for file paths
-- **Empty mission statement**: Must provide at least one sentence
-- **Incompatible tech stack**: Warn about potential conflicts
-- **Unclear repository structure**: Ask for clarification before proceeding
-
-### Recovery Actions
-
-- If file creation fails partway through, list what was created
-- Provide command to resume: "Run /plan again to complete setup"
-- Never overwrite existing files without user confirmation

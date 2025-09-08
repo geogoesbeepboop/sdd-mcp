@@ -25,17 +25,28 @@ Execute tasks from tasks.md by generating actual code, updating existing files, 
 
 ### Step 1: Detect Context
 
-1. **Validate project state:**
-   - Load ACTIVE_SPEC from `.github/context.md`
+**Follow the context-fetcher strategy from agents/context-fetcher.md:**
+
+1. **Validate project state and load foundation context:**
+   - Auto-fetch foundation documents: `.github/context.md`, `.github/product.md`, `.github/best-practices.md`
+   - From loaded context.md, get ACTIVE_SPEC
    - If ACTIVE_SPEC is "none", suggest: "No active spec found. Run /create-spec first."
    - Verify spec folder exists: `specs/[ACTIVE_SPEC]/`
 
-2. **Load task information:**
-   - Open `specs/[ACTIVE_SPEC]/tasks.md`
+2. **Load task and spec information (spec-specific fetching):**
+   - Load `specs/[ACTIVE_SPEC]/tasks.md` (always fetch when working on specific feature)
    - If tasks.md doesn't exist, suggest: "No tasks found. Run /create-tasks first."
+   - Load `specs/[ACTIVE_SPEC]/lite.md` for quick reference to requirements
    - Parse task structure and identify completed vs. pending tasks
 
-3. **Determine next task:**
+3. **Contextually fetch technical documentation based on next task:**
+   - **For API tasks**: Load `docs/api.md` for endpoint patterns and standards
+   - **For database tasks**: Load `docs/database.md` for schema patterns
+   - **For architecture tasks**: Load `docs/architecture.md` for component patterns
+   - **For UI/frontend tasks**: Load `docs/design.md` for component patterns
+   - **Never re-fetch**: Documents already in conversation history
+
+4. **Determine next task:**
    - If task_id specified, validate it exists and check dependencies
    - If "next" requested, find first unchecked task whose dependencies are met
    - If all tasks complete, congratulate and suggest /sync-docs
@@ -66,10 +77,11 @@ Execute tasks from tasks.md by generating actual code, updating existing files, 
 
 ### Step 3: Process and Validate
 
-1. **Load task context:**
+1. **Load task context using loaded documentation:**
    - Read complete task details (file, action, estimate, requirements, acceptance criteria)
-   - Load relevant spec sections if more context needed
-   - Check existing codebase patterns and conventions (from best-practices.md)
+   - Reference loaded spec lite.md for requirement context if needed
+   - Apply loaded best-practices.md patterns and conventions for implementation approach
+   - Cross-reference with loaded technical docs (api.md, database.md, architecture.md, design.md) as relevant
    - Verify all dependency tasks are marked as completed
 
 2. **Pre-implementation validation:**
@@ -89,22 +101,26 @@ Execute tasks from tasks.md by generating actual code, updating existing files, 
 1. **Execute the implementation:**
 
    **For CREATE actions:**
-   - Generate complete, production-ready code following project conventions
-   - Include proper error handling, logging, and validation
-   - Add necessary imports and dependencies
-   - Include inline comments explaining complex logic
-   - Follow existing code patterns and architecture
+   - Generate complete, production-ready code following loaded best-practices.md patterns
+   - Implement error handling using patterns from loaded best-practices.md
+   - Add logging using established patterns from loaded technical docs
+   - Include validation following loaded api.md or database.md patterns as appropriate
+   - Add necessary imports and dependencies following project structure from loaded architecture.md
+   - Include inline comments explaining complex logic (following best-practices.md commenting standards)
+   - Follow loaded architectural patterns and design decisions
 
    **For MODIFY actions:**
-   - Load existing file and understand current structure
-   - Make minimal, surgical changes that fulfill requirements
-   - Preserve existing functionality and patterns
-   - Show clear diff of what changed and why
+   - Load existing file and understand current structure and patterns
+   - Make minimal, surgical changes that fulfill requirements while maintaining loaded best-practices.md standards
+   - Preserve existing functionality and architectural patterns from loaded docs
+   - Ensure changes align with loaded technical documentation patterns
+   - Show clear diff of what changed and why, referencing which loaded patterns were applied
 
    **For DELETE actions:**
-   - Identify all references to code being removed
-   - Update imports, calls, and dependencies
-   - Ensure no broken references remain
+   - Identify all references to code being removed using loaded architecture.md understanding
+   - Update imports, calls, and dependencies following loaded project structure patterns
+   - Ensure no broken references remain and system integrity follows loaded architectural principles
+   - Update related documentation if needed
 
 2. **Validate implementation:**
    - Check that all acceptance criteria are met
@@ -112,19 +128,29 @@ Execute tasks from tasks.md by generating actual code, updating existing files, 
    - Test basic functionality if possible
    - Ensure integration points work correctly
 
-3. **Update progress tracking:**
+3. **Validate implementation quality:**
+   - **Pattern Compliance**: Check implementation follows loaded best-practices.md patterns
+   - **Architecture Alignment**: Verify code aligns with loaded architecture.md principles
+   - **Integration Quality**: Confirm implementation integrates properly with loaded technical doc patterns
+   - **Completeness**: Ensure all task acceptance criteria are fully satisfied
+   - **Quality Score**: Rate implementation on compliance, alignment, integration, and completeness (minimum 3/5 on each)
+
+4. **Update progress tracking:**
    - Mark task as completed in tasks.md: `- [x] **Task N.N**: [name]`
    - Add completion timestamp: `**Completed**: YYYY-MM-DD HH:MM`  
-   - Note any deviations: `**Notes**: [important decisions or changes]`
+   - Note any deviations: `**Notes**: [important decisions or pattern applications]`
+   - Record quality scores: `**Quality**: [Pattern/Architecture/Integration/Completeness scores]`
    - Update progress counters and remaining effort estimates
 
-4. **Report completion:**
+5. **Report completion with quality assessment:**
    ```
    ✓ Task N.N completed: [name]
-   ✓ [Action]: [file-path]
+   ✓ [Action]: [file-path] (following [specific patterns from loaded docs])
+   ✓ Quality Score: [scores] (all ≥3/5 required)
    ✓ Updated: tasks.md (X/Y tasks now complete, Z% done)
    ✓ Remaining effort: [X hours]
    
+   Context Status: Foundation docs remain loaded. Technical docs fetched as needed.
    Next ready task: Task M.M - [name]
    Continue with next task? (yes/no/different task)
    ```
@@ -143,54 +169,3 @@ markdown- [x] **Task 2.1**: [Task name]
   - Acceptance: [How to verify completion]
   - **Completed**: YYYY-MM-DD HH:MM
   - **Notes**: [Any deviations or important decisions made]
-
-## Error Handling and Edge Cases
-
-### Common Issues and Solutions
-
-1. **Missing Dependencies**
-   - Task dependencies are not marked as completed
-   - Solution: List incomplete dependencies, suggest completing them first
-
-2. **File Path Issues**
-   - Target file path doesn't exist or has permission problems
-   - Solution: Create missing directories, check permissions, suggest alternatives
-
-3. **Code Integration Conflicts**
-   - Existing code structure conflicts with task requirements
-   - Solution: Analyze conflicts, ask user for guidance, suggest refactoring
-
-4. **Incomplete Task Description**
-   - Task lacks sufficient detail for implementation
-   - Solution: Ask clarifying questions, suggest updating task or spec
-
-5. **External Dependencies**
-   - Task requires external services, APIs, or approvals that aren't ready
-   - Solution: Flag as blocked, suggest workarounds or placeholder implementations
-
-### Implementation Failures
-
-- **Compilation errors**: Code doesn't compile or has syntax issues
-- **Test failures**: Implementation doesn't meet acceptance criteria
-- **Integration failures**: Code doesn't integrate properly with existing system
-- **Performance issues**: Implementation doesn't meet performance requirements
-
-### Progress Tracking Issues
-
-- **Corrupted tasks.md**: Cannot parse or update task file
-- **Context inconsistency**: Progress doesn't match actual file state
-- **Concurrent modifications**: Multiple implementations happening simultaneously
-
-### Recovery Actions
-
-- **Partial implementations**: Save progress, mark task as in-progress with notes
-- **Failed implementations**: Revert changes if possible, document lessons learned
-- **Blocked tasks**: Mark as blocked with clear reasons and suggested resolution
-- **Task scope changes**: Update task description if requirements have evolved
-
-### Validation and Quality Checks
-
-- **Code review prompts**: Suggest areas that need human review
-- **Testing recommendations**: Identify what tests should be added
-- **Documentation gaps**: Flag missing or outdated documentation
-- **Security considerations**: Highlight potential security implications
